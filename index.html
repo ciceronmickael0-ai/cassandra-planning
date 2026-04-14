@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cassandra Planning</title>
+<meta name="theme-color" content="#1a3a5c">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="login-screen" class="login-screen">
+<div class="login-card">
+<div class="login-logo"><div class="logo-mark">C</div></div>
+<h1 class="login-title">Cassandra Planning</h1>
+<p class="login-sub">Gestion des interventions ménage</p>
+<div class="fgroup"><label class="label">Votre prénom</label><input type="text" id="login-name" placeholder="Marie..." autocomplete="name"></div>
+<div class="fgroup"><label class="label">Mot de passe</label><input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"></div>
+<div id="login-error" class="login-error"></div>
+<button class="btn-login" onclick="login()">Accéder au planning</button>
+<p class="login-hint">Contactez votre responsable pour obtenir l'accès</p>
+</div>
+</div>
+<div id="app" class="app hidden">
+<aside class="sidebar">
+<div class="sidebar-top">
+<div class="sidebar-logo">
+<div class="logo-mark-sm">C</div>
+<div><div class="sidebar-title">Cassandra</div><div class="sidebar-sub">Planning</div></div>
+</div>
+<nav class="sidebar-nav">
+<button class="nav-item active" onclick="showTab('planning',this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Planning</button>
+<button class="nav-item" onclick="showTab('clients',this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Clients</button>
+<button class="nav-item" onclick="showTab('rdvlist',this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Rendez-vous</button>
+<button class="nav-item" onclick="showTab('collaborateurs',this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Équipe</button>
+</nav>
+</div>
+<div class="sidebar-bottom">
+<div class="user-chip"><div class="user-avatar" id="user-avatar">M</div><div class="user-info"><div class="user-name" id="user-name-display">Utilisateur</div><div class="user-role">Connecté</div></div></div>
+<button class="btn-logout" onclick="logout()">Déconnexion</button>
+</div>
+</aside>
+<main class="main-content">
+<section id="view-planning" class="view active">
+<div class="view-header"><div><h2 class="view-title">Planning mensuel</h2><p class="view-desc" id="month-desc"></p></div><button class="btn-primary" onclick="openNewRdv(null)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Rendez-vous</button></div>
+<div class="cal-controls"><button class="nav-month" onclick="prevMonth()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"/></svg></button><div class="month-label" id="month-label"></div><button class="nav-month" onclick="nextMonth()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg></button></div>
+<div class="cal-wrap"><div class="cal-header"><div class="cal-dname">Lun</div><div class="cal-dname">Mar</div><div class="cal-dname">Mer</div><div class="cal-dname">Jeu</div><div class="cal-dname">Ven</div><div class="cal-dname week-end">Sam</div><div class="cal-dname week-end">Dim</div></div><div class="cal-grid" id="cal-grid"></div></div>
+<div class="stats-row" id="stats-row"></div>
+<div class="legend-row" id="legend-row"></div>
+</section>
+<section id="view-clients" class="view">
+<div class="view-header"><div><h2 class="view-title">Clients</h2><p class="view-desc" id="clients-count">0 clients</p></div><button class="btn-primary" onclick="openNewClient()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nouveau client</button></div>
+<input type="search" class="search-input" placeholder="Rechercher un client..." id="client-search" oninput="renderClients()">
+<div id="client-list" class="client-list"></div>
+</section>
+<section id="view-rdvlist" class="view">
+<div class="view-header"><div><h2 class="view-title">Rendez-vous</h2><p class="view-desc">Tous les créneaux planifiés</p></div><button class="btn-primary" onclick="openNewRdv(null)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Rendez-vous</button></div>
+<div id="rdv-list"></div>
+</section>
+<section id="view-collaborateurs" class="view">
+<div class="view-header"><div><h2 class="view-title">Équipe</h2><p class="view-desc">Gérez les collaborateurs et leurs couleurs</p></div><button class="btn-primary" onclick="openNewCollab()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ajouter</button></div>
+<div id="collab-grid" class="collab-grid"></div>
+</section>
+</main>
+</div>
+<div class="modal-overlay" id="modal-rdv" onclick="overlayClose(event,'modal-rdv')">
+<div class="modal">
+<div class="modal-header"><div class="modal-title" id="rdv-modal-title">Nouveau rendez-vous</div><button class="modal-close" onclick="closeModal('modal-rdv')">✕</button></div>
+<div class="modal-body">
+<div class="fgroup"><label class="label">Client</label><select id="rdv-client" class="input"></select></div>
+<div class="grid2"><div class="fgroup"><label class="label">Date</label><input type="date" id="rdv-date" class="input"></div><div class="fgroup"><label class="label">Heure</label><input type="time" id="rdv-time" class="input" value="09:00"></div></div>
+<div class="grid2"><div class="fgroup"><label class="label">Durée</label><select id="rdv-duree" class="input"><option value="1">1 heure</option><option value="1.5">1h30</option><option value="2" selected>2 heures</option><option value="3">3 heures</option><option value="4">4 heures</option><option value="5">5 heures</option></select></div><div class="fgroup"><label class="label">Type</label><select id="rdv-type" class="input"><option value="regulier">Ménage régulier</option><option value="ponctuel">Ménage ponctuel</option><option value="vitre">Lavage vitres</option><option value="repassage">Repassage</option><option value="autre">Autre</option></select></div></div>
+<div class="fgroup"><label class="label">Intervenants</label><div id="collab-assign" class="collab-assign"></div></div>
+<div class="rec-box"><div class="label">Récurrence</div><div class="rec-opts"><button class="rec-btn active" onclick="setRec('none',this)">Aucune</button><button class="rec-btn" onclick="setRec('1w',this)">Chaque semaine</button><button class="rec-btn" onclick="setRec('2w',this)">Toutes les 2 semaines</button></div><div id="rec-until-box" style="display:none;margin-top:10px"><label class="label">Jusqu'au</label><input type="date" id="rdv-until" class="input"></div></div>
+<div class="fgroup"><label class="label">Note</label><textarea id="rdv-note" class="input" rows="2" style="resize:vertical"></textarea></div>
+<div class="del-scope" id="delete-scope-box"><div class="del-scope-title">Que souhaitez-vous supprimer ?</div><label class="radio-label"><input type="radio" name="del-scope" value="one" checked> Ce rendez-vous uniquement</label><label class="radio-label"><input type="radio" name="del-scope" value="future"> Ce rendez-vous et les suivants</label><label class="radio-label"><input type="radio" name="del-scope" value="all"> Toute la série</label></div>
+</div>
+<div class="modal-footer"><button class="btn-delete" id="rdv-delete-btn" onclick="deleteRdv()" style="display:none">Supprimer</button><div style="display:flex;gap:8px;margin-left:auto"><button class="btn-secondary" onclick="closeModal('modal-rdv')">Annuler</button><button class="btn-primary" onclick="saveRdv()">Enregistrer</button></div></div>
+</div>
+</div>
+<div class="modal-overlay" id="modal-client" onclick="overlayClose(event,'modal-client')">
+<div class="modal">
+<div class="modal-header"><div class="modal-title" id="client-modal-title">Nouveau client</div><button class="modal-close" onclick="closeModal('modal-client')">✕</button></div>
+<div class="modal-body">
+<div class="grid2"><div class="fgroup"><label class="label">Prénom</label><input type="text" id="cl-prenom" class="input"></div><div class="fgroup"><label class="label">Nom</label><input type="text" id="cl-nom" class="input"></div></div>
+<div class="fgroup"><label class="label">Email</label><input type="email" id="cl-email" class="input"></div>
+<div class="fgroup"><label class="label">Téléphone</label><input type="tel" id="cl-tel" class="input"></div>
+<div class="fgroup"><label class="label">Adresse</label><input type="text" id="cl-adresse" class="input"></div>
+<div class="grid2"><div class="fgroup"><label class="label">Type</label><select id="cl-type" class="input"><option value="particulier">Particulier</option><option value="pro">Professionnel</option></select></div><div class="fgroup"><label class="label">Signature contrat</label><input type="date" id="cl-contrat" class="input"></div></div>
+<div class="fgroup"><label class="label">Note</label><textarea id="cl-note" class="input" rows="2" style="resize:vertical"></textarea></div>
+</div>
+<div class="modal-footer"><button class="btn-delete" id="cl-delete-btn" onclick="deleteClient()" style="display:none">Supprimer</button><div style="display:flex;gap:8px;margin-left:auto"><button class="btn-secondary" onclick="closeModal('modal-client')">Annuler</button><button class="btn-primary" onclick="saveClient()">Enregistrer</button></div></div>
+</div>
+</div>
+<div class="modal-overlay" id="modal-collab" onclick="overlayClose(event,'modal-collab')">
+<div class="modal">
+<div class="modal-header"><div class="modal-title" id="collab-modal-title">Nouveau collaborateur</div><button class="modal-close" onclick="closeModal('modal-collab')">✕</button></div>
+<div class="modal-body">
+<div class="grid2"><div class="fgroup"><label class="label">Prénom</label><input type="text" id="co-prenom" class="input"></div><div class="fgroup"><label class="label">Nom</label><input type="text" id="co-nom" class="input"></div></div>
+<div class="fgroup"><label class="label">Rôle</label><select id="co-role" class="input"><option value="associe">Associée</option><option value="employe">Employé(e)</option></select></div>
+<div class="fgroup"><label class="label">Mot de passe d'accès</label><input type="text" id="co-password" class="input" placeholder="Ex: cassandra2025"><div class="input-hint">Ce mot de passe permettra à cette personne de se connecter</div></div>
+<div class="fgroup"><label class="label">Couleur de repère</label><div class="color-grid" id="color-grid"></div></div>
+</div>
+<div class="modal-footer"><button class="btn-delete" id="co-delete-btn" onclick="deleteCollab()" style="display:none">Supprimer</button><div style="display:flex;gap:8px;margin-left:auto"><button class="btn-secondary" onclick="closeModal('modal-collab')">Annuler</button><button class="btn-primary" onclick="saveCollab()">Enregistrer</button></div></div>
+</div>
+</div>
+<div class="modal-overlay" id="modal-client-detail" onclick="overlayClose(event,'modal-client-detail')">
+<div class="modal">
+<div class="modal-header"><div class="modal-title" id="detail-nom">Fiche client</div><button class="modal-close" onclick="closeModal('modal-client-detail')">✕</button></div>
+<div class="modal-body" id="detail-body"></div>
+<div class="modal-footer"><div style="display:flex;gap:8px;margin-left:auto"><button class="btn-secondary" onclick="closeModal('modal-client-detail')">Fermer</button><button class="btn-primary" onclick="editClientFromDetail()">Modifier</button></div></div>
+</div>
+</div>
+<div id="toast" class="toast"></div>
+<script type="module" src="firebase-config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
